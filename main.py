@@ -5,44 +5,50 @@
 """
 import os
 
-from playwright.sync_api import sync_playwright
+from playwright.sync_api import sync_playwright, TimeoutError
 from time import sleep
+
+from selenium.common import TimeoutException
+
 from anti_bot_actions import *
 from dotenv import load_dotenv
 
+
 def epic_games():
     url_claim = 'https://store.epicgames.com/en-US/free-games'
-    url_login = 'https://www.epicgames.com/id/login?lang=en-US&noHostRedirect=true&redirectUrl=' + url_claim
+
+    # Get credentials
+    eg_mail = os.getenv("EG_EMAIL")
+    eg_pass = os.getenv("EG_PASSWORD")
 
     p, browser, page = setup_and_open(url_claim)
 
-    locator = page.locator("text='Sign in'")
-    locator.wait_for(state="visible", timeout=15000)
+    try:
+        # --- Sign in button ---
+        find_locator_and_click(page, "[aria-label='Sign in']")
 
-    if locator:
-        print('found login')
-        user_click(locator) # clicking on the sign in
+        # --- Enters email ---
+        find_and_fill(page, "#email", eg_mail, "#continue")
 
-        random_sleep(1,4)
+        # --- Enters password  ---
+        find_and_fill(page, "#password", eg_pass, "#sign-in")
 
-        locator = page.locator("#email")
-        locator.wait_for(state="visible", timeout=15000)
+        # --- 2FA step --- (User step)
+        try:
+            locator = page.locator("text=6-digit")
+            locator.wait_for(state="visible", timeout=15000)
 
-        if locator:
-            print('found email')
-            # get email and passwords from user file
-            eg_mail = os.getenv("EG_MAIL")
-            eg_pass = os.getenv("EG_PASSWORD")
+            input("-?- Enter the 6-digit code into the browser, then press Enter here...")
 
-            print(eg_mail, eg_pass)
-            sleep(1500)
-            human_type(page=page, loc=locator, text=eg_mail)
+            find_locator_and_click(page, "#yes")
+        except TimeoutError:
+            print("No 2FA prompt found")
 
+    # website changed or already signed in
+    except TimeoutError:
+        print("Login step not required (already signed in or site changed)")
 
-
-
-    else:
-        print('no login')
+    sleep(1544)
 
 
 def gog():
@@ -84,15 +90,9 @@ def setup_and_open(url=None):
     return p, browser, page
 
 
-
-
 def main():
-    load_dotenv(override=True)
-    eg_mail = os.getenv("EG_MAIL")
-    eg_pass = os.getenv("EG_PASSWORD")
+    load_dotenv(override=True, dotenv_path="./user.env")
 
-    print(eg_mail, eg_pass)
-    sleep(15000)
     epic_games()
 
     return 0

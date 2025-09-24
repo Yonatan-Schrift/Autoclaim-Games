@@ -1,19 +1,22 @@
 import random
 import time
-from playwright.sync_api import Page
+from playwright.sync_api import Page, TimeoutError
+
 
 def random_sleep(min_sec=0.2, max_sec=1.5):
     delay = random.uniform(min_sec, max_sec)
     time.sleep(delay)
+
 
 def user_click(locator):
     locator.hover()
     random_sleep()
     locator.click()
 
+
 def human_type(page: Page, loc, text: str,
-               min_delay=0.02, max_delay=0.16,
-               error_rate=0.03):
+               min_delay=0.03, max_delay=0.24,
+               error_rate=0.06):
     """
     Type `text` into element represented by `locator` simulating human typing.
 
@@ -44,3 +47,33 @@ def human_type(page: Page, loc, text: str,
         # small random pause occasionally (simulate thinking)
         if random.random() < 0.08:
             time.sleep(random.uniform(0.05, 0.4))
+
+
+def find_locator_and_click(page: Page, text: str):
+    try:
+        locator = page.locator(text)
+        locator.wait_for(state="visible", timeout=15000)
+        random_sleep()
+
+        user_click(locator)
+
+    except TimeoutError:
+        pass
+
+
+def find_and_fill(page: Page, to_locate: str, to_fill: str, to_continue: str):
+    try:
+        locator = page.locator(to_locate)
+        locator.wait_for(state="visible", timeout=15000)
+        random_sleep(2, 4)
+
+        if to_fill:
+            human_type(page=page, loc=locator, text=to_fill)
+            random_sleep()
+        else:
+            print(f"-!- No value provided for {to_locate}")
+
+        find_locator_and_click(page, to_continue)
+
+    except TimeoutError:
+        print(f"-!- Could not find element: {to_locate}")
