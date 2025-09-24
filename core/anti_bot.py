@@ -5,6 +5,9 @@ from playwright.sync_api import Page, Locator
 
 DEFAULT_ERROR_RATE: Final[float] = 0.06
 DEFAULT_THINK_PAUSE: Final[float] = 0.08
+DEFAULT_MIN_DELAY : Final[float] = 0.03
+DEFAULT_MAX_DELAY: Final[float] = 0.03
+DEFAULT_MAX_ALLOWED_DELAY: Final[int] = 300 # 5 minutes
 _TYPOS_ALPHABET: Final[str] = "abcdefghijklmnopqrstuvwxyz0123456789"
 
 
@@ -17,11 +20,13 @@ def random_sleep(min_sec: float = 0.2, max_sec: float = 1.5) -> float:
         max_sec: Maximum duration in seconds.
 
     Returns:
-        The actual sleep duration in seconds.
+        The sleep duration in seconds.
     """
     # Swaps min and max if max is smaller
     if max_sec < min_sec:
         min_sec, max_sec = max_sec, min_sec
+    if max_sec < 0 or min_sec < 0 or max_sec > DEFAULT_MAX_ALLOWED_DELAY:
+        return 0
 
     delay = random.uniform(min_sec, max_sec)
     time.sleep(delay)
@@ -29,40 +34,47 @@ def random_sleep(min_sec: float = 0.2, max_sec: float = 1.5) -> float:
     return delay
 
 
-def user_click(locator: Locator, timeout_ms: int = 15_000):
+def user_click(locator: Locator):
     """
-    Human-like click: wait -> hover -> small pause -> click.
+    Human-like click:  hover -> small pause -> click.
 
     Args:
-        locator: Target locator.
-        timeout_ms: Max wait for visibility before interacting.
+        locator (Locator | None): Target locator.
     """
-    locator.wait_for(state="visible", timeout=timeout_ms)
+    if Locator is None: return  # in case of empty locator
+
+    locator.scroll_into_view_if_needed()
     locator.hover()
-    random_sleep()
+    random_sleep(0.1, 0.3)
     locator.click()
 
 
-def human_type(page: Page, locator: Locator, text: str,
-               min_delay=0.03, max_delay=0.24,
-               error_rate=DEFAULT_ERROR_RATE, timeout_ms=15_000):
+def human_type(
+        page: Page,
+        locator: Locator,
+        text: str,
+        min_delay: float = DEFAULT_MIN_DELAY,
+        max_delay: float = DEFAULT_MAX_DELAY,
+        error_rate: float = DEFAULT_ERROR_RATE,
+) -> None:
     """
     Type `text` into element represented by `locator` simulating human typing.
 
     Args:
-        page: Playwright page.
-        locator: Target locator (focusable/typeable element).
-        text: Text to type.
-        min_delay: Min per-character delay (seconds).
-        max_delay: Max per-character delay (seconds).
-        error_rate: Probability of a typo that gets corrected (0..1).
-        timeout_ms: Max wait for visibility before typing.
+        page (Page): Playwright page.
+        locator (Locator): Target locator (focusable/typeable element).
+        text (str): Text to type.
+        min_delay (float): Min per-character delay (seconds).
+        max_delay (float): Max per-character delay (seconds).
+        error_rate (float): Probability of a typo that gets corrected (0..1).
+
+    Returns:
+        None
     """
     if not text:
         return  # nothing to type
 
     # Focus on the element
-    locator.wait_for(state="visible", timeout=timeout_ms)
     locator.scroll_into_view_if_needed()
     locator.click()
 
