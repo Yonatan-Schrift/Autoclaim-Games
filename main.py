@@ -5,12 +5,11 @@
 """
 import os
 
-from playwright.sync_api import sync_playwright, TimeoutError
 from time import sleep
 
-from selenium.common import TimeoutException
-
-from anti_bot_actions import *
+from core.setup import setup_and_open
+from core.utils import find_and_fill, find_locator_and_click
+from playwright.sync_api import TimeoutError as PWTimeoutError
 from dotenv import load_dotenv
 
 
@@ -41,11 +40,11 @@ def epic_games():
             input("-?- Enter the 6-digit code into the browser, then press Enter here...")
 
             find_locator_and_click(page, "#yes")
-        except TimeoutError:
+        except PWTimeoutError:
             print("No 2FA prompt found")
 
     # website changed or already signed in
-    except TimeoutError:
+    except PWTimeoutError:
         print("Login step not required (already signed in or site changed)")
 
     sleep(1544)
@@ -57,38 +56,6 @@ def gog():
 
 def prime_gaming():
     pass
-
-
-def setup_and_open(url=None):
-    p = sync_playwright().start()
-
-    user_data_dir = "pw_user_data"
-    browser = p.firefox.launch_persistent_context(
-        user_data_dir,
-        user_agent=(
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) "
-            "Gecko/20100101 Firefox/128.0"
-        ),
-        headless=False,
-        args=["--start-maximized"]
-    )
-
-    page = browser.pages[0]
-    page.set_viewport_size({"width": 1920, "height": 1080})
-
-    # hide navigator.webdriver
-    page.add_init_script("""
-        Object.defineProperty(navigator, 'webdriver', {
-            get: () => undefined
-        })
-    """)
-
-    random_sleep()
-    if url:
-        page.goto(url)
-
-    return p, browser, page
-
 
 def main():
     load_dotenv(override=True, dotenv_path="./user.env")
