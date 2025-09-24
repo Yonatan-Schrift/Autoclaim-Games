@@ -24,9 +24,11 @@ def click_locator(page: Page, text: str) -> bool:
         bool: True if the locator was found and clicked, False otherwise
     """
     locator = safe_find(page, text)
+    if not locator: return False
+
     user_click(locator)
 
-    return True if locator else False
+    return True
 
 
 def fill_field(page: Page, to_locate: str, to_fill: str, to_continue: str) -> bool:
@@ -43,6 +45,10 @@ def fill_field(page: Page, to_locate: str, to_fill: str, to_continue: str) -> bo
         bool: True if the element was found and filled, False otherwise.
     """
     locator = safe_find(page, to_locate)
+    if not locator:
+        # Either already signed in or locator changed
+        warn("Couldn't locate element, ignore if you're already signed in")
+        return True
     if to_fill:
         human_type(page=page, locator=locator, text=to_fill)
         random_sleep()
@@ -82,3 +88,5 @@ def safe_find(page: Page, to_locate: str, timeout_ms: int = DEFAULT_TIMEOUT_MS) 
         return locator
     except PWTimeoutError:
         return None
+
+

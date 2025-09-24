@@ -100,3 +100,11 @@ def human_type(
         # small random pause occasionally (simulate thinking)
         if random.random() < DEFAULT_THINK_PAUSE:
             random_sleep(0.05, 0.4)
+
+def scroll_down(page: Page, amount: int) -> None:
+    total = 0
+
+    while total < amount:
+        pick = random.randint(1, amount - total)
+        total += pick
+        page.mouse.wheel(100, pick)
