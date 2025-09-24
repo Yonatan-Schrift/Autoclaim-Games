@@ -1,6 +1,6 @@
 # 🎮 Auto Free Game Claimer
 
-This project automates the process of claiming free games from various platforms (such as Epic Games, Steam, etc.) using browser automation via [Playwright](https://playwright.dev/).
+This project automates the process of claiming free games from various platforms (such as Epic Games, Gog, etc.) using browser automation via [Playwright](https://playwright.dev/).
 
 ---
 
@@ -32,7 +32,7 @@ This project automates the process of claiming free games from various platforms
 ### 1. Clone the repo
 
 ```
-git clone https://github.com/yourname/free-game-claimer.git
+git clone https://github.com/Yonatan-Schrift/Autoclaim-Games
 cd free-game-claimer
 ```
 
