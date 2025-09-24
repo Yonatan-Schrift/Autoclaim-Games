@@ -27,7 +27,7 @@ def epic_games(eg_mail: str, eg_pass: str):
             return 1
 
 
-    locator = safe_find(page, "[aria-label='free']")
+    
 
     sleep(1544)
 
