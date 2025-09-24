@@ -1,3 +1,22 @@
-# env files with passwords
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.log
+
+# Virtual environments
+.venv/
+env/
+venv/
+
+# Playwright user data
+pw_user_data/
+
+# Env files with secrets
 *.env
-!*.env.example
+!*.env.example   # keep example configs
+
+# IDE files
+.idea/
+.vscode/
