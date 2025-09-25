@@ -20,11 +20,11 @@ python -m pip install -r requirements.txt >nul
 python -m playwright install >nul
 
 echo.
-echo ✅ Successfully installed the project requirements!
+echo Successfully installed the project requirements!
 echo.
 echo Run the script with:   python main.py
 echo.
-echo ⚠ Don't forget to update the environment file with your credentials!
+echo !!! Don't forget to update the environment file with your credentials!
 echo.
 
 :end
