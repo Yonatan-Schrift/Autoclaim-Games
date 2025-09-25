@@ -50,11 +50,7 @@ open the extracted folder
 
 ### 3. Configure credentials
 
-Copy `user.env.example` to `user.env` and fill in your account details:
-
-```
-cp user.env.example user.env
-```
+Rename `user.env.example` to `user.env` and fill in your account details:
 
 ### 4. Run the script
 
