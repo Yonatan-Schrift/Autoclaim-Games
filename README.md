@@ -33,7 +33,7 @@ This project automates the process of claiming free games from various platforms
 
 ```
 git clone https://github.com/Yonatan-Schrift/Autoclaim-Games
-cd free-game-claimer
+cd Autoclaim-Games
 ```
 OR
 ```
