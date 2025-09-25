@@ -8,13 +8,14 @@ from core.setup import setup_and_open
 from core.utils import fill_field, click_locator, safe_find
 from core.exceptions import *
 
-from playwright.sync_api import Page
+from playwright.sync_api import Page, TimeoutError as PWTimeoutError
 import re
 
 def epic_games(eg_mail: str, eg_pass: str):
     url_claim = 'https://store.epicgames.com/en-US/free-games'
 
     p, browser, page = setup_and_open(url_claim, isEpic=True)
+    claimed = 0
 
     # Checks if the user is already signed in
     locator = safe_find(page, "[aria-label='Account menu']", timeout_ms=3000)
@@ -32,11 +33,15 @@ def epic_games(eg_mail: str, eg_pass: str):
         game_name = clean_text(item.inner_text())
         link = f"https://store.epicgames.com{item.get_attribute('href')}"
         print(f"Item {i}: {game_name}, link: {link}")
-        claim_game(page, link)
+        try:
+            claim_game(page, link)
+            claimed += 1
+        except PWTimeoutError:
+            print(f"-!- Failed to claim {game_name} -!-")
 
         random_sleep()
         page.goto(url_claim, wait_until="load")
-
+    print(f"--- Successfully claimed {claimed} games ---")
 
 def sign_in(eg_mail: str, eg_pass: str, page: Page):
     # --- Sign in button ---
@@ -95,10 +100,10 @@ def claim_game(page: Page, link: str):
     button.wait_for(state="visible", timeout=20_000)
     user_click(button)
 
-    captcha = page.frame_locator("#h_captcha_challenge_checkout_free_prod iframe")
-    if captcha:
-        print(f"-!- CAPTCHA -!-")
-        input("press Enter in the console to continue...")
+    # captcha = page.frame_locator("#h_captcha_challenge_checkout_free_prod iframe")
+    # if captcha:
+    #     print(f"-!- CAPTCHA -!-")
+    #     input("press Enter in the console to continue...")
 
     if safe_find(page, "text=Thanks for your order!"):
         print(f"--- CLAIMED ---")
