@@ -8,7 +8,7 @@ This project automates the process of claiming free games from various platforms
 
 * ✅ Automatically logs into game platforms
 * ✅ Locates and clicks "claim" or "purchase" buttons
-* ✅ Supports multi-step flows (email, password, 2FA)
+* ✅ Supports multistep flows (email, password, 2FA)
 * ✅ Modular design: easy to add new game sites
 * ✅ Simulates human-like interactions to avoid bot detection
 
@@ -45,7 +45,7 @@ open the extracted folder
 ### 2. Install dependencies
 
 ```
-pip install -r requirements.txt
+./install.bat
 ```
 
 ### 3. Configure credentials
