@@ -11,6 +11,7 @@ from core.exceptions import *
 from playwright.sync_api import Page, TimeoutError as PWTimeoutError
 import re
 
+
 def epic_games(eg_mail: str, eg_pass: str):
     url_claim = 'https://store.epicgames.com/en-US/free-games'
 
@@ -42,6 +43,7 @@ def epic_games(eg_mail: str, eg_pass: str):
         random_sleep()
         page.goto(url_claim, wait_until="load")
     print(f"--- Successfully claimed {claimed} games ---")
+
 
 def sign_in(eg_mail: str, eg_pass: str, page: Page):
     # --- Sign in button ---
