@@ -9,7 +9,18 @@ from playwright.sync_api import sync_playwright
 from core.anti_bot import random_sleep
 
 
-def setup_and_open(url=None, isEpic=False):
+def setup_and_open(url : str = None, is_epic : bool = False):
+    """
+    Sets up the browser and opens the given URL.
+    Optionally sets up cookies for epic-games.
+
+    Args:
+        url (str): The URL to open.
+        is_epic (bool): Whether to set up cookies for epic-games.
+
+    Returns:
+        Tuple: A tuple containing the Playwright instance, browser context, and page object.
+    """
     p = sync_playwright().start()
 
     user_data_dir = "pw_user_data"
@@ -20,17 +31,17 @@ def setup_and_open(url=None, isEpic=False):
             "Gecko/20100101 Firefox/128.0"
         ),
         headless=False,
-        args=["--start-maximized"]
+        viewport={"width": 1920, "height": 1080}
     )
 
     # sets up specific cookies for epic-games
-    if(isEpic):
-        value = (datetime.utcnow() - timedelta(days=5)).isoformat() + "Z"
+    if is_epic:
+        value = (datetime.now() - timedelta(days=5)).isoformat() + "Z"
         browser.add_cookies([
             {
                 "name": "OptanonAlertBoxClosed",
                 "value": value,
-                "domain": ".epicgames.com",
+                "domain": "epicgames.com",
                 "path": "/"
             },
             {
@@ -42,7 +53,6 @@ def setup_and_open(url=None, isEpic=False):
         ])
 
     page = browser.pages[0]
-    page.set_viewport_size({"width": 1920, "height": 1080})
 
     # hide navigator.webdriver
     page.add_init_script("""

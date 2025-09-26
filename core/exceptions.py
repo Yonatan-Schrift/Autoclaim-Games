@@ -21,3 +21,6 @@ class InvalidCredentialsError(ProjectError):
 class LocatorNotFoundError(ProjectError):
     """Raised when a required UI locator is not found on the page."""
     pass
+class EpicGamesGameNotFoundError(ProjectError):
+    """Raised when a game name is not found. Specific to Epic-Games"""
+    pass
