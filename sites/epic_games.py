@@ -68,8 +68,8 @@ def epic_games(eg_mail: str, eg_pass: str) -> int:
 
             logger.info(f"[{i}] Trying to claim {game_name} from {link}...")
             try:
-                claim_game(page, link)
-                log_persistent(logger, f"Successfully claimed {game_name} from {link}")
+                claim_game(page, link, game_name)
+
             except PWTimeoutError:
                 logger.error(f"-!- Failed to claim {game_name} -!-")
                 status = 1  # set return value to error if any game fails to be claimed
@@ -86,7 +86,7 @@ def epic_games(eg_mail: str, eg_pass: str) -> int:
             logger.debug("Browser and Playwright closed.")
 
         # stops the logger
-        logger.info("Finished all tasks")
+        logger.info("Finished all tasks\n")
         stop_logger(logger)
 
     return status
@@ -155,7 +155,7 @@ def clean_text(text: str) -> str:
     )
 
 
-def claim_game(page: Page, link: str):
+def claim_game(page: Page, link: str, game_name: str):
     logger.info(f"Claiming game from {link}...")
     page.goto(link)
     # scroll smoothly down a little bit
@@ -200,4 +200,5 @@ def claim_game(page: Page, link: str):
     # Wait until the "Thanks for your order!" text appears
     if safe_find(page, "text=Thanks for your order!"):
         logger.info("Game successfully claimed!")
+        log_persistent(logger, f"Successfully claimed {game_name} from {link}")
         return
