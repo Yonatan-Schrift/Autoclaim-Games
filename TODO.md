@@ -1,5 +1,3 @@
-[] Handle captcha if appears
-[] Add additional logging
 # 📝 Project TODOs
 
 This file tracks tasks, bugs, and improvements for the project.
