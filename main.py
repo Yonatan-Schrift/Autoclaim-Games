@@ -1,16 +1,12 @@
 """
 @file:   main.py
+@module: main
 @brief:  A program that automatically claims free video games from select web-stores.
 @author: Yonatan-Schrift
 """
 import os
 from dotenv import load_dotenv
 from sites.epic_games import epic_games
-
-
-
-
-
 
 
 def main():

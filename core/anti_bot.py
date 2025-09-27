@@ -1,14 +1,25 @@
+"""
+@file       core/anti_bot.py
+@module     core.anti_bot
+@brief      functions for evading bot detection with playwright
+@author     Yonatan-Schrift
+"""
+
+
 import random
 import time
 from typing import Final
 from playwright.sync_api import Page, Locator
 
+# Human-type defaults
 DEFAULT_ERROR_RATE: Final[float] = 0.06
 DEFAULT_THINK_PAUSE: Final[float] = 0.08
-DEFAULT_MIN_DELAY : Final[float] = 0.03
-DEFAULT_MAX_DELAY: Final[float] = 0.03
-DEFAULT_MAX_ALLOWED_DELAY: Final[int] = 300 # 5 minutes
+DEFAULT_MIN_DELAY : Final[float] = 0.08
+DEFAULT_MAX_DELAY: Final[float] = 0.15
 _TYPOS_ALPHABET: Final[str] = "abcdefghijklmnopqrstuvwxyz0123456789"
+
+# Random sleep defaults
+DEFAULT_MAX_ALLOWED_DELAY: Final[int] = 300 # 5 minutes
 
 
 def random_sleep(min_sec: float = 0.2, max_sec: float = 1.5) -> float:
@@ -16,8 +27,8 @@ def random_sleep(min_sec: float = 0.2, max_sec: float = 1.5) -> float:
     Sleep for a random duration between min_sec and max_sec seconds.
 
     Args:
-        min_sec: Minimum duration in seconds.
-        max_sec: Maximum duration in seconds.
+        min_sec: Minimum duration in seconds (must be >= 0).
+        max_sec: Maximum duration in seconds (must be >= min_sec and <= 300).
 
     Returns:
         The sleep duration in seconds.
@@ -25,6 +36,8 @@ def random_sleep(min_sec: float = 0.2, max_sec: float = 1.5) -> float:
     # Swaps min and max if max is smaller
     if max_sec < min_sec:
         min_sec, max_sec = max_sec, min_sec
+
+    # Validate input ranges
     if max_sec < 0 or min_sec < 0 or max_sec > DEFAULT_MAX_ALLOWED_DELAY:
         return 0
 

@@ -1,5 +1,6 @@
 """
-@file:   prime_gaming.py
+@file:   sites/prime_gaming.py
+@module: sites.prime_gaming
 @brief:  This file contains functions specific to claiming games from the prime gaming website.
 @author: Yonatan-Schrift
 """

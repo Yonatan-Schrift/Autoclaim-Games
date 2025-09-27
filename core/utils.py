@@ -1,16 +1,23 @@
 """
-@file:   utils.py
+@file:   core/utils.py
+@module: core.utils
 @brief:  Includes various utilities, especially for locating elements in a page
 @author: Yonatan-Schrift
 """
 
 from core.anti_bot import random_sleep, user_click, human_type
+from core.exceptions import *
+
 from playwright.sync_api import Page, Locator
 from playwright.sync_api import TimeoutError as PWTimeoutError
-from typing import Optional, Final
-from warnings import warn
 
-DEFAULT_TIMEOUT_MS : Final[int] = 15000
+from typing import Optional, Final
+import threading
+import queue
+
+
+DEFAULT_TIMEOUT_MS: Final[int] = 15000
+
 
 def click_locator(page: Page, text: str) -> bool:
     """
@@ -43,23 +50,24 @@ def fill_field(page: Page, to_locate: str, to_fill: str, to_continue: str) -> bo
 
     Returns:
         bool: True if the element was found and filled, False otherwise.
+
+    Raises:
+        LocatorNotFoundError: If the element to locate is not found.
+        MissingValueError: If the value to fill is not provided.
     """
     locator = safe_find(page, to_locate)
     if not locator:
         # Either already signed in or locator changed
-        warn("Couldn't locate element, ignore if you're already signed in")
-        return True
+        raise LocatorNotFoundError(f"-!- Couldn't locate element {to_locate}")
     if to_fill:
         human_type(page=page, locator=locator, text=to_fill)
         random_sleep()
     else:
-        warn(f"-!- No value provided for {to_locate}")
-        return False
+        raise MissingValueError(f"-!- No value provided for \'to_locate\'")
 
     click_locator(page, to_continue)
 
     return True
-
 
 def safe_find(page: Page, to_locate: str, timeout_ms: int = DEFAULT_TIMEOUT_MS) -> Optional[Locator]:
     """
@@ -75,11 +83,10 @@ def safe_find(page: Page, to_locate: str, timeout_ms: int = DEFAULT_TIMEOUT_MS) 
         Playwright locate object if found.
 
     Raises:
-        RuntimeError: if the timeout is exceeded
+        MissingValueError: if to_locate is not provided
     """
     if not to_locate:
-        warn(f"-!- No value provided for {to_locate}")
-        return None
+        raise MissingValueError(f"-!- No value provided for \'to_locate\'")
 
     try:
         locator = page.locator(to_locate)
@@ -90,3 +97,40 @@ def safe_find(page: Page, to_locate: str, timeout_ms: int = DEFAULT_TIMEOUT_MS) 
         return None
 
 
+def safe_fill(page: Page, to_locate: str, to_fill: str, to_continue: str):
+    try:
+        fill_field(page, to_locate, to_fill, to_continue)
+    except ProjectError as e:
+        raise e
+
+
+def wait_for_user_input(prompt: str, timeout: int = 300) -> str | None:
+    """
+    Wait for user input with a timeout.
+
+    Args:
+        prompt: The prompt to show to the user.
+        timeout: Max seconds to wait.
+
+    Returns:
+        The user input as string, or None if EOF (Ctrl+D/Z).
+
+    Raises:
+        TimeoutError: If no input was given within `timeout`.
+    """
+    q = queue.Queue()
+
+    def reader():
+        try:
+            q.put(input(prompt))
+        except EOFError:
+            q.put(None)
+
+    t = threading.Thread(target=reader, daemon=True)
+    t.start()
+    t.join(timeout)
+
+    if t.is_alive():
+        raise TimeoutError("2FA entry timed out")
+
+    return q.get()

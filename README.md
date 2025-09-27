@@ -19,6 +19,7 @@ This project automates the process of claiming free games from various platforms
 ```
 .
 ├── core/               # Core automation logic (anti-bot, utils, exceptions)
+├── logs/               # Log related logic + log files
 ├── sites/              # Platform-specific logic (e.g. Epic, Gog)
 ├── main.py             # Entry point
 ├── user.env.example    # Environment variables template (credentials)
@@ -50,12 +51,12 @@ open the extracted folder
 
 ### 3. Configure credentials
 
-Rename `user.env.example` to `user.env` and fill in your account details:
+Rename `user.env.example` to `user.env` and fill in your account details
 
 ### 4. Run the script
 
 ```
-python main.py
+./run.bat
 ```
 
 ---

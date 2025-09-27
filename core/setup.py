@@ -1,5 +1,6 @@
 """
-@file:   setup.py
+@file:   core/setup.py
+@module: core.setup
 @brief:  Includes functions for setting up the browser agent.
 @author: Yonatan-Schrift
 """
