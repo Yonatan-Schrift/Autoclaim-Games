@@ -56,7 +56,7 @@ def user_click(locator: Locator) -> None:
     Args:
         locator (Locator | None): Target locator.
     """
-        if locator is None: return  # in case of empty locator
+    if locator is None: return  # in case of empty locator
 
     locator.scroll_into_view_if_needed()
     try:
