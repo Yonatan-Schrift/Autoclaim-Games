@@ -46,6 +46,7 @@ open the extracted folder
 ### 2. Install dependencies
 
 ```
+# creates a virtual env for python, installs all requirements.
 ./install.bat
 ```
 
@@ -56,8 +57,19 @@ Rename `user.env.example` to `user.env` and fill in your account details
 ### 4. Run the script
 
 ```
+# uses venv and runs all current sites
 ./run.bat
 ```
+OR
+```
+python main.py [OPTIONS]
+```
+     Options:
+            -h, --help     Show this help message and exit
+            -eg, --epic-games  Claim free games from Epic Games Store
+            -pg, --prime-games Claim free games from Prime Gaming (not yet implemented)
+            -gog, --gog    Claim free games from GOG (not yet implemented)
+            -a, --all      Claim free games from all supported stores
 
 ---
 
