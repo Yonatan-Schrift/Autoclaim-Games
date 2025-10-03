@@ -10,7 +10,7 @@ from playwright.sync_api import sync_playwright
 from core.anti_bot import random_sleep
 
 
-def setup_and_open(url : str = None, is_epic : bool = False):
+def setup_and_open(url : str = None, is_epic : bool = False, headless: bool = False):
     """
     Sets up the browser and opens the given URL.
     Optionally sets up cookies for epic-games.
@@ -18,6 +18,7 @@ def setup_and_open(url : str = None, is_epic : bool = False):
     Args:
         url (str): The URL to open.
         is_epic (bool): Whether to set up cookies for epic-games.
+        headless (bool): Whether to set up browser headless.
 
     Returns:
         Tuple: A tuple containing the Playwright instance, browser context, and page object.
@@ -31,7 +32,7 @@ def setup_and_open(url : str = None, is_epic : bool = False):
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) "
             "Gecko/20100101 Firefox/128.0"
         ),
-        headless=False,
+        headless=headless,
         viewport={"width": 1920, "height": 1080}
     )
 

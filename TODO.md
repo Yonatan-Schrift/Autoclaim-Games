@@ -9,11 +9,10 @@ This file tracks tasks, bugs, and improvements for the project.
 - [x] Add additional logging
 
 ## 🚧 In Progress
-- [ ] empty D:
+- [ ] Add support for amazon prime gaming
 
 ## 📌 Backlog
 - [ ] Handle captcha
 - [ ] Add support for gog
-- [ ] Add support for amazon prime gaming
 
 ---

@@ -10,6 +10,8 @@ import random
 import time
 from typing import Final
 from playwright.sync_api import Page, Locator
+from playwright.sync_api import TimeoutError as PWTimeoutError
+
 
 # Human-type defaults
 DEFAULT_ERROR_RATE: Final[float] = 0.06
@@ -47,17 +49,25 @@ def random_sleep(min_sec: float = 0.2, max_sec: float = 1.5) -> float:
     return delay
 
 
-def user_click(locator: Locator):
+def user_click(locator: Locator) -> None:
     """
     Human-like click:  hover -> small pause -> click.
 
     Args:
         locator (Locator | None): Target locator.
     """
-    if Locator is None: return  # in case of empty locator
+        if locator is None: return  # in case of empty locator
 
     locator.scroll_into_view_if_needed()
-    locator.hover()
+    try:
+        locator.hover(timeout=1000)
+    except PWTimeoutError:
+        # if hover fails, just continue to click
+        random_sleep(0.1, 0.3)
+        locator.click(force=True)
+
+        return
+
     random_sleep(0.1, 0.3)
     locator.click()
 

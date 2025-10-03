@@ -17,23 +17,29 @@ from playwright.sync_api import Page, TimeoutError as PWTimeoutError
 # Setup logger
 logger = get_logger(__name__)
 
-def epic_games(eg_mail: str, eg_pass: str) -> int:
+def epic_games(eg_mail: str, eg_pass: str, headless: bool = False) -> int:
     """
     Main function to claim free games from Epic Games Store.
 
     Args:
-        eg_mail: epic-games account email
-        eg_pass: epic-games account password
+        eg_mail (str): epic-games account email
+        eg_pass (str): epic-games account password
+        headless (bool): config to run browser in headless mode
 
     Returns:
         1 on failure, 0 on success
     """
+    logger.info("Running epic_games...")
     # Constants
     url_claim = 'https://store.epicgames.com/en-US/free-games'
     status = 0  # default return value to success
 
+    if not eg_mail or not eg_pass:
+        logger.critical("-!- ERROR: Epic Games credentials not provided -!-")
+        return 1
+
     # setup playwright
-    p, browser, page = setup_and_open(url_claim, is_epic=True)
+    p, browser, page = setup_and_open(url_claim, is_epic=True, headless=headless)
     try:
         # Checks if the user is already signed in
         logger.info("Checking if already signed in...")
@@ -44,7 +50,6 @@ def epic_games(eg_mail: str, eg_pass: str) -> int:
             except ProjectError as e:
                 logger.critical(f"-!- ERROR: {e} -!-")  # log error
                 status = 1  # set return value to error
-
 
         # Locate all free games on the page
         free_games = page.locator("[aria-label*='Free Games'][aria-label*='Free Now']").all()

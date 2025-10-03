@@ -60,7 +60,8 @@ def get_logger(name: str) -> logging.Logger:
     persistent_handler = logging.FileHandler(persistent_log_file, encoding="utf-8")
     persistent_handler.setLevel(PERSISTENT)  # only log persistent level logs
     persistent_handler.setFormatter(logging.Formatter(
-        "%(asctime)s: %(message)s"
+        "%(asctime)s: %(message)s",
+        datefmt="%d-%m-%Y %H:%M:%S"
     ))
 
 
