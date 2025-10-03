@@ -11,7 +11,7 @@ This project automates the process of claiming free games from various platforms
 * ✅ Supports multistep flows (email, password, 2FA)
 * ✅ Modular design: easy to add new game sites
 * ✅ Simulates human-like interactions to avoid bot detection
-
+* ✅ Sends notifications via several channels (Discord webhook, email, etc.)
 ---
 
 ## 🗂️ Project Structure
@@ -53,6 +53,8 @@ open the extracted folder
 ### 3. Configure credentials
 
 Rename `user.env.example` to `user.env` and fill in your account details
+
+Create a discord webhook for notifications and add it to the env file (optional)
 
 ### 4. Run the script
 

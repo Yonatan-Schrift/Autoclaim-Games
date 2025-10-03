@@ -4,6 +4,7 @@
 @brief:  Includes various utilities, especially for locating elements in a page
 @author: Yonatan-Schrift
 """
+import os
 
 from core.anti_bot import random_sleep, user_click, human_type
 from core.exceptions import *
@@ -15,8 +16,26 @@ from typing import Optional, Final
 import threading
 import queue
 
-
 DEFAULT_TIMEOUT_MS: Final[int] = 15000
+
+
+def env_to_bool(env_var_name: Optional[str], default: bool = False) -> bool:
+    """
+    Convert an environment variable string to a boolean.
+
+    Args:
+        env_var_name (Optional[str]): The name of the environment variable to convert.
+        default (bool): The default boolean value to return if the environment variable is not set.
+
+    Returns:
+        bool: The converted boolean value.
+    """
+    env_value = os.getenv(env_var_name)
+
+    if env_value is None:
+        return default
+
+    return env_value.lower() in ("1", "true", "yes", "on")
 
 
 def click_locator(page: Page, text: str) -> bool:
@@ -68,6 +87,7 @@ def fill_field(page: Page, to_locate: str, to_fill: str, to_continue: str) -> bo
     click_locator(page, to_continue)
 
     return True
+
 
 def safe_find(page: Page, to_locate: str, timeout_ms: int = DEFAULT_TIMEOUT_MS) -> Optional[Locator]:
     """
