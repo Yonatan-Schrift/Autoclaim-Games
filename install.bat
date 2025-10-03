@@ -22,7 +22,7 @@ python -m playwright install >nul
 echo.
 echo Successfully installed the project requirements!
 echo.
-echo Run the script with:   python main.py
+echo Run the script with:   python main.py --help
 echo.
 echo !!! Don't forget to update the environment file with your credentials!
 echo.

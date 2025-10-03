@@ -47,7 +47,6 @@ def run(args):
             case '-a' | '--all':
                 status |= epic_games(os.getenv("EG_EMAIL"), os.getenv("EG_PASSWORD"), headless)
                 #status |= prime_gaming(os.getenv("PG_EMAIL"), os.getenv("PG_PASSWORD"), headless)
-                print("Prime Gaming support is not yet implemented.")
             case _:
                 print(f"Unknown argument: {arg}")
                 return 1
