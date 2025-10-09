@@ -89,14 +89,15 @@ def fill_field(page: Page, to_locate: str, to_fill: str, to_continue: str) -> bo
     return True
 
 
-def safe_find(page: Page, to_locate: str, timeout_ms: int = DEFAULT_TIMEOUT_MS) -> Optional[Locator]:
+def safe_find(page: Page, to_locate: str, timeout_ms: int = DEFAULT_TIMEOUT_MS, is_hidden: bool = False) -> Optional[Locator]:
     """
     Locate an element and wait until it becomes visible, returning None on failure.
 
     Args:
         page (Page): the page to search
-        to_locate (str): the string to find
         timeout_ms (int): the time to wait before catching the error
+        to_locate (str): the string to find
+        is_hidden (bool) : whether to wait for the element to be visible
 
     Returns:
         None - if to_locate wasn't found
@@ -110,7 +111,8 @@ def safe_find(page: Page, to_locate: str, timeout_ms: int = DEFAULT_TIMEOUT_MS) 
 
     try:
         locator = page.locator(to_locate)
-        locator.wait_for(state="visible", timeout=timeout_ms)
+        if not is_hidden: locator.wait_for(state="visible", timeout=timeout_ms)
+
         random_sleep(1, 3.5)
         return locator
     except PWTimeoutError:

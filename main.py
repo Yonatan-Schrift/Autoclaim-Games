@@ -11,8 +11,8 @@ import textwrap
 from dotenv import load_dotenv
 
 from core.utils import env_to_bool
-from sites.epic_games import epic_games
-# from sites.prime_gaming import prime_gaming
+from sites.epic_games import EpicGames
+from sites.prime_gaming import PrimeGaming
 # from sites.gog import gog
 
 def main():
@@ -37,16 +37,16 @@ def run(args):
                 print_help()
                 return 0
             case '-eg' | '--epic-games':
-                status |= epic_games(os.getenv("EG_EMAIL"), os.getenv("EG_PASSWORD"), headless)
+                status |= EpicGames.run(os.getenv("EG_EMAIL"), os.getenv("EG_PASSWORD"), headless)
             case '-pg' | '--prime-games':
-                # status |= prime_gaming(os.getenv("PG_EMAIL"), os.getenv("PG_PASSWORD"), headless)
-                print("Prime Gaming support is not yet implemented.")
+                print("Prime Gaming is experimental and may not work as expected.")
+                status |= PrimeGaming.run(os.getenv("PG_EMAIL"), os.getenv("PG_PASSWORD"), headless)
             case '-g' | '--gog':
                 # status |= gog(os.getenv("GOG_EMAIL"), os.getenv("GOG_PASSWORD"), headless)
                 print("GOG support is not yet implemented.")
             case '-a' | '--all':
-                status |= epic_games(os.getenv("EG_EMAIL"), os.getenv("EG_PASSWORD"), headless)
-                #status |= prime_gaming(os.getenv("PG_EMAIL"), os.getenv("PG_PASSWORD"), headless)
+                status |= EpicGames.run(os.getenv("EG_EMAIL"), os.getenv("EG_PASSWORD"), headless)
+                status |= PrimeGaming.run(os.getenv("PG_EMAIL"), os.getenv("PG_PASSWORD"), headless)
             case _:
                 print(f"Unknown argument: {arg}")
                 return 1
@@ -59,7 +59,7 @@ def print_help():
         Options:
             -h, --help     Show this help message and exit
             -eg, --epic-games  Claim free games from Epic Games Store
-            -pg, --prime-games Claim free games from Prime Gaming (not yet implemented)
+            -pg, --prime-games Claim free games from Prime Gaming (Working but not tested thoroughly)
             -g, --gog    Claim free games from GOG (not yet implemented)
             -a, --all      Claim free games from all supported stores
     """))

@@ -77,7 +77,7 @@ python main.py [OPTIONS]
 
 ## 🧩 Adding a New Site
 
-1. Create a new file under `sites/` (e.g. `siteB.py`).
+1. Create a new file under `sites/` (e.g. `siteB.py`), using the abstract class website.
 2. Implement the login and claim flow using Playwright locators.
 3. Import it into `main.py` and add it to the workflow.
 

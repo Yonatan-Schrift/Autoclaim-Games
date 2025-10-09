@@ -8,10 +8,10 @@ IF %ERRORLEVEL% NEQ 0 (
 
 REM --- Create virtual environment ---
 echo --- Creating a virtual Python environment for the project...
-python -m venv venv
+python -m venv .venv
 
 REM --- Activate venv ---
-call venv\Scripts\activate
+call .venv\Scripts\activate
 
 REM --- Install requirements ---
 echo --- Installing project requirements...
