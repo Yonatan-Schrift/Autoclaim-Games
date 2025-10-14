@@ -1,4 +1,4 @@
-# 🎮 Auto Free Game Claimer
+#  Auto Games Claimer
 
 This project automates the process of claiming free games from various platforms (such as Epic Games, Gog, etc.) using browser automation via [Playwright](https://playwright.dev/).
 
@@ -7,7 +7,6 @@ This project automates the process of claiming free games from various platforms
 ## 🚀 Features
 
 * ✅ Automatically logs into game platforms
-* ✅ Locates and clicks "claim" or "purchase" buttons
 * ✅ Supports multistep flows (email, password, 2FA)
 * ✅ Modular design: easy to add new game sites
 * ✅ Simulates human-like interactions to avoid bot detection
@@ -77,7 +76,7 @@ python main.py [OPTIONS]
 
 ## 🧩 Adding a New Site
 
-1. Create a new file under `sites/` (e.g. `siteB.py`), using the abstract class website.
+1. Create a new file under `sites/` (e.g. `siteB.py`), using the abstract class `website`.
 2. Implement the login and claim flow using Playwright locators.
 3. Import it into `main.py` and add it to the workflow.
 

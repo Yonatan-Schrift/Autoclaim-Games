@@ -234,14 +234,14 @@ class PrimeGaming(Website):
 
             current_height = page.evaluate("document.documentElement.scrollHeight")
             PrimeGaming.logger.debug(
-                f"[DEBUG] Scroll #{i}: prev={previous_height}, curr={current_height}, stable={stable_count}")
+                f" Scroll #{i}: prev={previous_height}, curr={current_height}, stable={stable_count}")
 
             # If height hasn't changed, increment stability counter
             if current_height == previous_height:
                 stable_count += 1
                 if stable_count >= stable_retries:
                     PrimeGaming.logger.debug(
-                        f"[INFO] -!- Page height stable for {stable_retries} checks — finished after {i + 1} scrolls.")
+                        f"-!- Page height stable for {stable_retries} checks — finished after {i + 1} scrolls.")
                     return True
             else:
                 stable_count = 0  # reset if height changes
