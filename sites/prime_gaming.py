@@ -157,7 +157,14 @@ class PrimeGaming(Website):
 
         random_sleep()
 
-        # gog games requires manual claim (e.g. captcha) so saves the game code for the user to claim.
+        # Some games require account linking, check for that
+        locator = safe_find(page, "text='Link account'", timeout_ms=1000)
+        if locator:
+            raise AccountNotLinkedError(
+                f"Account required for {game_name} not linked to prime_gaming - please link your account manually and try again")
+
+
+        # gog games requires manual claim (e.g. captcha) so it sends the game code for the user to claim.
         locator = safe_find(page, "[title='Claim Code']", timeout_ms=3000)
         if locator:
             with page.context.expect_page() as new_page_info:
@@ -168,7 +175,7 @@ class PrimeGaming(Website):
 
             PrimeGaming.logger.info("Found claim code... must claim manually")
 
-            log_persistent(PrimeGaming.logger, f"Claim{game_name} from {new_page.url}")
+            log_persistent(PrimeGaming.logger, f"Claim {game_name} from {new_page.url}")
 
             PrimeGaming.logger.info("Game claimed successfully!")
 
@@ -186,16 +193,19 @@ class PrimeGaming(Website):
             PrimeGaming.logger.info("Game claimed successfully!")
             return True
 
-        # Epic games (currently none available -> I can't create the checks)
-        #
-        #
+        # Epic games:
+        locator = safe_find(page, "[title*='Epic Games']", timeout_ms=3000)
+        if locator:
+            PrimeGaming.logger.info("Epic Games...")
 
-        PrimeGaming.logger.info("Game claimed successfully!")
-        log_persistent(PrimeGaming.logger, f"Successfully claimed {game_name}")
+            log_persistent(PrimeGaming.logger, f"Claimed {game_name} into your epic games account!")
 
-        random_sleep(1, 2)
+            PrimeGaming.logger.info("Game claimed successfully!")
+            return True
 
-        return True
+        PrimeGaming.logger.warning("Game claim method unknown, please check for updates to the script")
+
+        return False
 
     @staticmethod
     def scroll_until_end(page: Page, max_scrolls: int = 50, stable_retries: int = 3):

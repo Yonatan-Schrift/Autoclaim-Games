@@ -16,7 +16,7 @@ from typing import Optional, Final
 import threading
 import queue
 
-DEFAULT_TIMEOUT_MS: Final[int] = 15000
+DEFAULT_TIMEOUT_MS: Final[int] = 5000
 
 
 def env_to_bool(env_var_name: Optional[str], default: bool = False) -> bool:

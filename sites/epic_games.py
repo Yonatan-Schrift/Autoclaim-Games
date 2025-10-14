@@ -117,7 +117,7 @@ class EpicGames(Website):
             raise LocatorNotFoundError("Sign in button missing, please check for updates to the script")
 
         # Checks once again for account, since sometimes the account is already signed in
-        locator = safe_find(page, "[aria-label='Account menu']", timeout_ms=3000)
+        locator = safe_find(page, "[aria-label='Account menu']", timeout_ms=DEFAULT_TIMEOUT_MS)
         if locator:
             EpicGames.logger.info("Already signed in!")
             return

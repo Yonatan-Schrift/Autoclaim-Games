@@ -35,3 +35,7 @@ class MissingValueError(ProjectError):
 class EpicGamesGameNotFoundError(ProjectError):
     """Raised when a game name is not found. Specific to Epic-Games"""
     pass
+
+class AccountNotLinkedError(ProjectError):
+    """Raised when an account is not linked. Specific to Prime-Gaming"""
+    pass
