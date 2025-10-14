@@ -18,8 +18,8 @@ from sites.website import Website
 
 
 class PrimeGaming(Website):
-    logger = get_logger(__name__)
     BASE_URL = "https://gaming.amazon.com/"
+    logger = get_logger(__name__)
 
     @staticmethod
     def run(pg_mail: str, pg_pass: str, headless: bool = False) -> int:
@@ -157,7 +157,7 @@ class PrimeGaming(Website):
 
         random_sleep()
 
-        # gog games manual claim (requires captcha)
+        # gog games requires manual claim (e.g. captcha) so saves the game code for the user to claim.
         locator = safe_find(page, "[title='Claim Code']", timeout_ms=3000)
         if locator:
             with page.context.expect_page() as new_page_info:
@@ -186,7 +186,7 @@ class PrimeGaming(Website):
             PrimeGaming.logger.info("Game claimed successfully!")
             return True
 
-        # Epic games (currently none available so can't create)
+        # Epic games (currently none available -> I can't create the checks)
         #
         #
 
@@ -240,11 +240,7 @@ class PrimeGaming(Website):
         return False
 
     @staticmethod
-    def get_unique_game_locators(
-            page: Page,
-            game_selector: str,
-            unique_by: str
-    ) -> dict[str, str]:
+    def get_unique_game_locators(page: Page, game_selector: str, unique_by: str) -> dict[str, str]:
         """
         Collects all locators matching `game_selector` and deduplicates them
         by a given attribute (e.g., aria-label, id, name).
@@ -255,7 +251,7 @@ class PrimeGaming(Website):
             unique_by (str): Attribute name to deduplicate by.
 
         Returns:
-            dict[str, str]: Mapping from unique attribute value → href.
+            dict[str, str]: Mapping from unique attribute value -> href.
         """
         locators = page.locator(game_selector).all()
         unique_dict = {}

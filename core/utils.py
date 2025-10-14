@@ -91,7 +91,7 @@ def fill_field(page: Page, to_locate: str, to_fill: str, to_continue: str) -> bo
 
 def safe_find(page: Page, to_locate: str, timeout_ms: int = DEFAULT_TIMEOUT_MS, is_hidden: bool = False) -> Optional[Locator]:
     """
-    Locate an element and wait until it becomes visible, returning None on failure.
+        Locate an element and wait until it becomes visible, returning None on failure (e.g., timeout or not found).
 
     Args:
         page (Page): the page to search
@@ -105,18 +105,22 @@ def safe_find(page: Page, to_locate: str, timeout_ms: int = DEFAULT_TIMEOUT_MS, 
 
     Raises:
         MissingValueError: if to_locate is not provided
+
+    Notes:
+        On multiple matches, returns the first one.
     """
     if not to_locate:
         raise MissingValueError(f"-!- No value provided for \'to_locate\'")
 
     try:
-        locator = page.locator(to_locate)
+        locator = page.locator(to_locate).first
         if not is_hidden: locator.wait_for(state="visible", timeout=timeout_ms)
 
         random_sleep(1, 3.5)
         return locator
     except PWTimeoutError:
         return None
+
 
 
 def safe_fill(page: Page, to_locate: str, to_fill: str, to_continue: str):

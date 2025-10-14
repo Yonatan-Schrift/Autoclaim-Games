@@ -7,7 +7,7 @@
 
 from core.anti_bot import random_sleep, user_click, scroll_down
 from core.setup import setup_and_open
-from core.utils import click_locator, safe_find, wait_for_user_input, safe_fill
+from core.utils import click_locator, safe_find, wait_for_user_input, safe_fill, DEFAULT_TIMEOUT_MS
 from core.exceptions import *
 from logs.events import log_persistent
 from logs.logger import get_logger, stop_logger
@@ -15,6 +15,7 @@ from logs.logger import get_logger, stop_logger
 from playwright.sync_api import Page, TimeoutError as PWTimeoutError
 
 from sites.website import Website
+
 
 # Setup logger
 
@@ -78,14 +79,17 @@ class EpicGames(Website):
                     link = f"https://store.epicgames.com{item.get_attribute('href')}"
                 except Exception as e:
                     EpicGames.logger.warning(f"-!- Skipping a game due to unexpected error: {e}")
+                    status = 1
                     continue
 
                 EpicGames.logger.info(f"[{i}] Trying to claim {game_name} from {link}...")
                 try:
                     EpicGames.claim_game(page, link, game_name)
-
-                except PWTimeoutError:
-                    EpicGames.logger.error(f"-!- Failed to claim {game_name} -!-")
+                except PWTimeoutError as e:
+                    EpicGames.logger.error(f"-!- Failed to claim {game_name} due to timeout: {e} -!-")
+                    status = 1
+                except Exception as e:
+                    EpicGames.logger.error(f"-!- Failed to claim {game_name} due to unexpected error: {e}-!-")
                     status = 1  # set return value to error if any game fails to be claimed
 
                 random_sleep()
@@ -189,7 +193,7 @@ class EpicGames(Website):
         click_locator(page, "[data-testid*='purchase']")
 
         # Wait until the checkout iframe exists
-        page.wait_for_selector("#webPurchaseContainer iframe", timeout=20_000)
+        page.wait_for_selector("#webPurchaseContainer iframe", timeout=DEFAULT_TIMEOUT_MS)
 
         # Attach to the checkout iframe
         iframe = page.frame_locator("#webPurchaseContainer iframe")
