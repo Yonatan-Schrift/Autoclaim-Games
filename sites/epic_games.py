@@ -4,6 +4,7 @@
 @brief:  This file contains functions specific to claiming games from the epic-games website.
 @author: Yonatan-Schrift
 """
+import os # for os.getlogin()
 
 from core.anti_bot import random_sleep, user_click, scroll_down
 from core.setup import setup_and_open
@@ -50,7 +51,7 @@ class EpicGames(Website):
         try:
             # Checks if the user is already signed in
             EpicGames.logger.info("Checking if already signed in...")
-            locator = safe_find(page, "[aria-label='Account menu']", timeout_ms=3000)
+            locator = safe_find(page, "[aria-label='Account menu']", timeout_ms=5000)
             if not locator:
                 try:
                     EpicGames.sign_in(eg_mail, eg_pass, page)  # sign in
@@ -62,10 +63,12 @@ class EpicGames(Website):
             EpicGames.logger.info(f"Signed in as {username}")
 
             # Locate all free games on the page
-            free_games = page.locator("[aria-label*='Free Games'][aria-label*='Free Now']").all()
+            free_games = page.locator("[aria-label*='Free Games'][aria-label*='Free Now'], "
+                                      "[data-component='VaultOfferCard']").all() # a fix for Christmas 2025
             if not free_games:
-                EpicGames.logger.info(
-                    "No free games found, unusual behavior, please check for updates to the script or any geo-restrictions."
+                log_persistent(EpicGames.logger,
+                    "No free games found, unusual behavior, please check for updates to the script or any "
+                    "geo-restrictions."
                 )
                 return status
 
@@ -76,7 +79,19 @@ class EpicGames(Website):
 
                 try:
                     game_name = EpicGames.clean_text(item.inner_text())
-                    link = f"https://store.epicgames.com{item.get_attribute('href')}"
+                    href = item.get_attribute('href')
+
+                    # A fix for when href is not directly on the item
+                    if not href:
+                        anchor = item.locator("a")
+                        if not anchor:
+                            raise EpicGamesGameNotFoundError("Could not find game link")
+                        href = anchor.get_attribute('href')
+                    if(href == "/en-US/free-games"):
+                        # skip empty free games cards (Especially during holiday events)
+                        EpicGames.logger.warning(f"-!- Skipping empty free game card -!-")
+                        continue
+                    link = f"https://store.epicgames.com{href}"
                 except Exception as e:
                     EpicGames.logger.warning(f"-!- Skipping a game due to unexpected error: {e}")
                     status = 1
@@ -214,7 +229,7 @@ class EpicGames(Website):
         #     input("press Enter in the console to continue...")
 
         # Wait until the "Thanks for your order!" text appears
-        if safe_find(page, "text=Thanks for your order!"):
+        if safe_find(page, "text=Thanks for your order!",timeout_ms=15_000):
             EpicGames.logger.info("Game successfully claimed!")
-            log_persistent(EpicGames.logger, f"Successfully claimed {game_name} from {link}")
+            log_persistent(EpicGames.logger, f"User {os.getlogin()} Successfully claimed {game_name} from {link}")
             return

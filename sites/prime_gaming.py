@@ -4,6 +4,7 @@
 @brief:  This file contains functions specific to claiming games from the prime gaming website.
 @author: Yonatan-Schrift
 """
+import os # for os.getlogin()
 
 from core.anti_bot import random_sleep, scroll_down, user_click
 from core.setup import setup_and_open
@@ -175,7 +176,7 @@ class PrimeGaming(Website):
 
             PrimeGaming.logger.info("Found claim code... must claim manually")
 
-            log_persistent(PrimeGaming.logger, f"Claim {game_name} from {new_page.url}")
+            log_persistent(PrimeGaming.logger, f"User: {os.getlogin()}\n Claim {game_name} from {new_page.url}")
 
             PrimeGaming.logger.info("Game claimed successfully!")
 
@@ -188,7 +189,7 @@ class PrimeGaming(Website):
             PrimeGaming.logger.info("Legacy-Games game... must claim manually")
 
             log_persistent(PrimeGaming.logger,
-                           f"Claim{game_name} from legacy games with code: {locator.get_attribute('value')}")
+                           f"User: {os.getlogin()}\n Claim {game_name} from legacy games with code: {locator.get_attribute('value')}")
 
             PrimeGaming.logger.info("Game claimed successfully!")
             return True
@@ -198,7 +199,7 @@ class PrimeGaming(Website):
         if locator:
             PrimeGaming.logger.info("Epic Games...")
 
-            log_persistent(PrimeGaming.logger, f"Claimed {game_name} into your epic games account!")
+            log_persistent(PrimeGaming.logger, f"User: {os.getlogin()} Claimed {game_name} into your epic games account!")
 
             PrimeGaming.logger.info("Game claimed successfully!")
             return True
