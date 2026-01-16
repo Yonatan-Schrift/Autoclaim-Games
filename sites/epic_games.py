@@ -87,7 +87,7 @@ class EpicGames(Website):
                         if not anchor:
                             raise EpicGamesGameNotFoundError("Could not find game link")
                         href = anchor.get_attribute('href')
-                    if(href == "/en-US/free-games"):
+                    if href == "/en-US/free-games":
                         # skip empty free games cards (Especially during holiday events)
                         EpicGames.logger.warning(f"-!- Skipping empty free game card -!-")
                         continue
