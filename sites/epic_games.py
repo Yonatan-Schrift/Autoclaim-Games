@@ -196,7 +196,11 @@ class EpicGames(Website):
         # Check if game is already owned
         if safe_find(page, "text='In Library'", timeout_ms=2000):
             EpicGames.logger.info("Game already in library, skipping...")
-            # print(f"--- Game already claimed ---")
+            return
+
+        # Check if the freebie is a DLC for another game.
+        if safe_find(page, "text='Requires Base Game'", timeout_ms=2000):
+            EpicGames.logger.info("Freebie is a DLC, skipping...")
             return
 
         # Accept EULA if it appears (only on first claim)
