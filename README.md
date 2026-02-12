@@ -4,16 +4,16 @@ This project automates the process of claiming free games from various platforms
 
 ---
 
-## 🚀 Features
+## Features
 
-* ✅ Automatically logs into game platforms
-* ✅ Supports multistep flows (email, password, 2FA)
-* ✅ Modular design: easy to add new game sites
-* ✅ Simulates human-like interactions to avoid bot detection
-* ✅ Sends notifications via several channels (Discord webhook, email, etc.)
+*  Automatically logs into game platforms
+*  Supports multistep flows (email, password, 2FA)
+*  Modular design: easy to add new game sites
+*  Simulates human-like interactions to avoid bot detection
+*  Sends notifications via several channels (Discord webhook, email, etc.)
 ---
 
-## 🗂️ Project Structure
+##  Project Structure
 
 ```
 .
@@ -27,7 +27,7 @@ This project automates the process of claiming free games from various platforms
 
 ---
 
-## ⚙️ Setup
+##  Setup
 
 ### 1. Clone the repo
 
@@ -74,7 +74,7 @@ python main.py [OPTIONS]
 
 ---
 
-## 🧩 Adding a New Site
+##  Adding a New Site
 
 1. Create a new file under `sites/` (e.g. `siteB.py`), using the abstract class `website`.
 2. Implement the login and claim flow using Playwright locators.
@@ -82,6 +82,6 @@ python main.py [OPTIONS]
 
 ---
 
-## ⚠️ Disclaimer
+##  Disclaimer
 
 This project is for **educational purposes only**. Use responsibly. Some platforms may restrict or ban accounts that use automated tools.
