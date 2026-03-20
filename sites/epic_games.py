@@ -119,6 +119,8 @@ class EpicGames(Website):
                 p.stop()
                 EpicGames.logger.debug("Browser and Playwright closed.")
 
+            if status != 0:
+                log_persistent(EpicGames.logger, "Finished with an error! Check the logs")
             # stops the logger
             stop_logger(EpicGames.logger)
 
