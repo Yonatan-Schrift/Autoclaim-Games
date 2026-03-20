@@ -38,8 +38,9 @@ class EpicGames(Website):
             1 on failure, 0 on success
         """
         EpicGames.logger.info("Running epic_games...")
+
         # Constants
-        url_claim = 'https://store.epicgames.com/en-US/free-games'
+        url_claim = 'https://store.epicgames.com/en-US/'
         status = 0  # default return value to success
 
         if not eg_mail or not eg_pass:
