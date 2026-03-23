@@ -5,6 +5,7 @@
 @author: Yonatan-Schrift
 """
 import os # for os.getlogin()
+from math import exp
 
 from core.anti_bot import random_sleep, user_click, scroll_down
 from core.setup import setup_and_open
@@ -49,6 +50,17 @@ class EpicGames(Website):
 
         # setup playwright
         p, browser, page = setup_and_open(url_claim, is_epic=True, headless=headless)
+
+        # Searching if the website didn't load correctly
+        EpicGames.logger.info("Checking page loading errors")
+        locator = safe_find(page, 'Error')
+        if locator:
+            try:
+                user_click(locator)
+            except ProjectError as e:
+                EpicGames.logger.critical(f"-!- ERROR: {e} -!-")  # log error
+                status = 1  # set return value to error
+
         try:
             # Checks if the user is already signed in
             EpicGames.logger.info("Checking if already signed in...")
@@ -62,6 +74,10 @@ class EpicGames(Website):
 
             username = safe_find(page, "[aria-label='Account menu']", timeout_ms=3000).get_attribute("title")
             EpicGames.logger.info(f"Signed in as {username}")
+
+            # scrolling to the end of the site so the "Free Games" section loads.
+            scroll_twice(page, 5000)
+
 
             # Locate all free games on the page
             free_games = page.locator("[aria-label*='Free Games'][aria-label*='Free Now'], "
@@ -110,6 +126,8 @@ class EpicGames(Website):
 
                 random_sleep()
                 page.goto(url_claim, wait_until="load", timeout=15000)
+                scroll_twice(page, 5000) # scrolling to the end of the site so the "free games" section loads.
+
 
         finally:
             EpicGames.logger.debug("Closing browser and Playwright...")
@@ -240,3 +258,10 @@ class EpicGames(Website):
             EpicGames.logger.info("Game successfully claimed!")
             log_persistent(EpicGames.logger, f"User {os.getlogin()} Successfully claimed {game_name} from {link}")
             return
+
+@staticmethod
+def scroll_twice(page: Page, scroll_amount: int):
+    scroll_down(page, scroll_amount)
+    random_sleep(1, 2)
+    scroll_down(page, scroll_amount)
+    random_sleep(2, 5)
