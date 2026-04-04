@@ -85,3 +85,9 @@ python main.py [OPTIONS]
 ##  Disclaimer
 
 This project is for **educational purposes only**. Use responsibly. Some platforms may restrict or ban accounts that use automated tools.
+
+
+## Contact me
+
+You can contact me for any reason on: \
+**Discord**: yonatan_sc
