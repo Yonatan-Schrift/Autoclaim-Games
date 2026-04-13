@@ -7,7 +7,11 @@
 import os
 
 from core.anti_bot import random_sleep, user_click, human_type
-from core.exceptions import *
+from core.exceptions import (
+    MissingValueError,
+    LocatorNotFoundError,
+    ProjectError,
+)
 
 from playwright.sync_api import Page, Locator
 from playwright.sync_api import TimeoutError as PWTimeoutError
@@ -144,19 +148,30 @@ def wait_for_user_input(prompt: str, timeout: int = 300) -> str | None:
     Raises:
         TimeoutError: If no input was given within `timeout`.
     """
-    q = queue.Queue()
+    q = queue.Queue(maxsize=1)
+    thread_started = threading.Event()
 
     def reader():
+        thread_started.set()
         try:
-            q.put(input(prompt))
-        except EOFError:
-            q.put(None)
+            user_input = input(prompt)
+            try:
+                q.put(user_input, timeout=1)
+            except queue.Full:
+                pass
+        except (EOFError, OSError):
+            try:
+                q.put(None, timeout=1)
+            except queue.Full:
+                pass
 
     t = threading.Thread(target=reader, daemon=True)
     t.start()
-    t.join(timeout)
-
-    if t.is_alive():
-        raise TimeoutError("2FA entry timed out")
-
-    return q.get()
+    
+    if not thread_started.wait(timeout=timeout):
+        raise TimeoutError("User input timed out")
+    
+    try:
+        return q.get(timeout=timeout)
+    except queue.Empty:
+        raise TimeoutError("Failed to receive user input")

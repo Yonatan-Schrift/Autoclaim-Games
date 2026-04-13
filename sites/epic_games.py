@@ -72,7 +72,12 @@ class EpicGames(Website):
                     EpicGames.logger.critical(f"-!- ERROR: {e} -!-")  # log error
                     status = 1  # set return value to error
 
-            username = safe_find(page, "[aria-label='Account menu']", timeout_ms=3000).get_attribute("title")
+            username_locator = safe_find(page, "[aria-label='Account menu']", timeout_ms=3000)
+            if not username_locator:
+                EpicGames.logger.error("Could not find account menu after sign in")
+                status = 1
+                return status
+            username = username_locator.get_attribute("title")
             EpicGames.logger.info(f"Signed in as {username}")
 
             # scrolling to the end of the site so the "Free Games" section loads.
@@ -81,7 +86,7 @@ class EpicGames(Website):
 
             # Locate all free games on the page
             free_games = page.locator("[aria-label*='Free Games'][aria-label*='Free Now'], "
-                                      "[data-component='VaultOfferCard']").all() # a fix for Christmas 2025
+                                      "[data-component='VaultOfferCard']").all()
             if not free_games:
                 log_persistent(EpicGames.logger,
                     "No free games found, unusual behavior, please check for updates to the script or any "
@@ -89,12 +94,21 @@ class EpicGames(Website):
                 )
                 return status
 
-            # Claim each free game
-            for i, item in enumerate(free_games, start=1):
-                item.scroll_into_view_if_needed()
-                random_sleep()
+            total_games = len(free_games)
+            EpicGames.logger.info(f"Found {total_games} free games to claim")
 
+            # Claim each free game - re-query locators after each page navigation
+            for i in range(total_games):
+                # Re-query locator each iteration to avoid stale references
                 try:
+                    free_games = page.locator("[aria-label*='Free Games'][aria-label*='Free Now'], "
+                                              "[data-component='VaultOfferCard']").all()
+                    if i >= len(free_games):
+                        break  # No more games
+                    item = free_games[i]
+                    item.scroll_into_view_if_needed()
+                    random_sleep()
+                    
                     game_name = EpicGames.clean_text(item.inner_text())
                     href = item.get_attribute('href')
 
@@ -105,7 +119,6 @@ class EpicGames(Website):
                             raise EpicGamesGameNotFoundError("Could not find game link")
                         href = anchor.get_attribute('href')
                     if href == "/en-US/free-games":
-                        # skip empty free games cards (Especially during holiday events)
                         EpicGames.logger.warning(f"-!- Skipping empty free game card -!-")
                         continue
                     link = f"https://store.epicgames.com{href}"
@@ -114,7 +127,7 @@ class EpicGames(Website):
                     status = 1
                     continue
 
-                EpicGames.logger.info(f"[{i}] Trying to claim {game_name} from {link}...")
+                EpicGames.logger.info(f"[{i+1}] Trying to claim {game_name} from {link}...")
                 try:
                     EpicGames.claim_game(page, link, game_name)
                 except PWTimeoutError as e:
@@ -122,11 +135,11 @@ class EpicGames(Website):
                     status = 1
                 except Exception as e:
                     EpicGames.logger.error(f"-!- Failed to claim {game_name} due to unexpected error: {e}-!-")
-                    status = 1  # set return value to error if any game fails to be claimed
+                    status = 1
 
                 random_sleep()
                 page.goto(url_claim, wait_until="load", timeout=15000)
-                scroll_twice(page, 5000) # scrolling to the end of the site so the "free games" section loads.
+                scroll_twice(page, 5000)
 
 
         finally:
@@ -209,33 +222,48 @@ class EpicGames(Website):
 
     @staticmethod
     def claim_game(page: Page, link: str, game_name: str):
-        EpicGames.logger.info(f"Claiming game from {link}...")
+        EpicGames.logger.info(f"Claiming game '{game_name}' from {link}...")
+        
+        EpicGames.logger.debug(f"Navigating to {link}...")
         page.goto(link)
-        # scroll smoothly down a little bit
+        EpicGames.logger.debug("Page loaded, scrolling...")
         scroll_down(page, 200)
 
         # Check if game is already owned
+        EpicGames.logger.debug("Checking if game is in library...")
         if safe_find(page, "text='In Library'", timeout_ms=2000):
-            EpicGames.logger.info("Game already in library, skipping...")
+            EpicGames.logger.info(f"'{game_name}' already in library, skipping...")
             return
 
         # Check if the freebie is a DLC for another game.
+        EpicGames.logger.debug("Checking if game is a DLC...")
         if safe_find(page, "text='Requires Base Game'", timeout_ms=2000):
-            EpicGames.logger.info("Freebie is a DLC, skipping...")
+            EpicGames.logger.info(f"'{game_name}' is a DLC, skipping...")
             return
 
         # Accept EULA if it appears (only on first claim)
+        EpicGames.logger.debug("Checking for EULA...")
         if safe_find(page, "text='end user license agreement'", timeout_ms=2000):
-            EpicGames.logger.warning("End User License Agreement detected, should be accepted automatically...")
-            page.locator("button").filter(has_text="Accept").click()
+            EpicGames.logger.warning("EULA detected, accepting...")
+            try:
+                page.locator("button").filter(has_text="Accept").click()
+                EpicGames.logger.debug("EULA accepted")
+            except Exception as e:
+                EpicGames.logger.warning(f"Failed to accept EULA: {e}")
 
         EpicGames.logger.debug("Clicking purchase button...")
         click_locator(page, "[data-testid*='purchase']")
 
         # Wait until the checkout iframe exists
-        page.wait_for_selector("#webPurchaseContainer iframe", timeout=DEFAULT_TIMEOUT_MS)
+        EpicGames.logger.debug("Waiting for checkout iframe...")
+        try:
+            page.wait_for_selector("#webPurchaseContainer iframe", timeout=DEFAULT_TIMEOUT_MS)
+        except Exception as e:
+            EpicGames.logger.error(f"Checkout iframe not found: {e}")
+            raise
 
         # Attach to the checkout iframe
+        EpicGames.logger.debug("Locating Place Order button...")
         iframe = page.frame_locator("#webPurchaseContainer iframe")
 
         # Locate the Place Order button (only when not loading)
@@ -244,20 +272,29 @@ class EpicGames(Website):
         )
 
         # Wait until button is visible and click
+        EpicGames.logger.debug("Waiting for Place Order button to be visible...")
+        try:
+            button.wait_for(state="visible", timeout=20_000)
+        except Exception as e:
+            EpicGames.logger.error(f"Place Order button not visible: {e}")
+            raise
+            
         EpicGames.logger.debug("Clicking Place Order button...")
-        button.wait_for(state="visible", timeout=20_000)
         user_click(button)
 
         # captcha = page.frame_locator("#h_captcha_challenge_checkout_free_prod iframe")
         # if captcha:
-        #     print(f"-!- CAPTCHA -!-")
+        #     EpicGames.logger.warning("CAPTCHA detected!")
         #     input("press Enter in the console to continue...")
 
         # Wait until the "Thanks for your order!" text appears
+        EpicGames.logger.debug("Waiting for order confirmation...")
         if safe_find(page, "text=Thanks for your order!",timeout_ms=15_000):
-            EpicGames.logger.info("Game successfully claimed!")
+            EpicGames.logger.info(f"'{game_name}' successfully claimed!")
             log_persistent(EpicGames.logger, f"User {os.getlogin()} Successfully claimed {game_name} from {link}")
             return
+        
+        EpicGames.logger.warning(f"'{game_name}' claim completed but no confirmation found")
 
 @staticmethod
 def scroll_twice(page: Page, scroll_amount: int):

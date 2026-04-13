@@ -6,7 +6,11 @@
 """
 
 import discord_webhook
+import concurrent.futures
 # import smtplib
+
+# Thread pool for non-blocking notifications
+_notification_pool = concurrent.futures.ThreadPoolExecutor(max_workers=2)
 
 
 def send_discord_notification(webhook_url: str, message: str) -> bool:
@@ -24,3 +28,15 @@ def send_discord_notification(webhook_url: str, message: str) -> bool:
     webhook = discord_webhook.DiscordWebhook(url=webhook_url, content=message)
     response = webhook.execute()
     return response.status_code == 200
+
+
+def send_discord_notification_async(webhook_url: str, message: str) -> None:
+    """
+    Sends a notification message to a Discord channel via webhook asynchronously.
+    Does not block the calling thread.
+
+    Args:
+        webhook_url (str): The Discord webhook URL.
+        message (str): The message to send.
+    """
+    _notification_pool.submit(send_discord_notification, webhook_url, message)

@@ -8,6 +8,7 @@
 import logging
 import os
 import json
+import fcntl
 
 from logging.handlers import RotatingFileHandler
 from logs.events import PERSISTENT
@@ -15,6 +16,42 @@ from logs.events import PERSISTENT
 # Ensure logs directory exists (currently always exists as this file is in /logs)
 LOG_DIR = os.path.join("logs")
 os.makedirs(LOG_DIR, exist_ok=True)
+
+
+def _update_counter(counter_file: str) -> int:
+    """
+    Atomically update the counter file using file locking.
+    
+    Args:
+        counter_file: Path to the counter JSON file.
+        
+    Returns:
+        The new count value after incrementing.
+    """
+    # Create file if it doesn't exist
+    if not os.path.exists(counter_file):
+        with open(counter_file, "w") as f:
+            json.dump({"count": 1}, f)
+        return 1
+    
+    with open(counter_file, 'a+') as f:
+        fcntl.flock(f.fileno(), fcntl.LOCK_EX)
+        try:
+            f.seek(0)
+            content = f.read()
+            count = json.loads(content).get("count", 0) if content else 0
+            count += 1
+            if count >= 7:
+                f.seek(0)
+                f.truncate()
+                count = 0
+            else:
+                f.seek(0)
+                f.truncate()
+                json.dump({"count": count}, f)
+            return count
+        finally:
+            fcntl.flock(f.fileno(), fcntl.LOCK_UN)
 
 
 def get_logger(name: str) -> logging.Logger:
@@ -35,22 +72,12 @@ def get_logger(name: str) -> logging.Logger:
 
     clear_log_day = os.getenv("KEEP_LOG_FOR")  # days after which to clear the log file
 
-    # --- Load an update the counter file ---
-    count = 0
-    if os.path.exists(counter_file):
-        with open(counter_file, 'r') as f:
-            count = json.load(f).get("count", 0)
+    # --- Atomically update the counter file ---
+    count = _update_counter(counter_file)
 
-    count += 1
-
-    if count >= 7:
-        # Clear the main log file (not the persistent one)
+    if count == 0:
+        # Clear the main log file (not the persistent one) when counter resets
         open(log_file, "w").close()
-        count = 0  # reset counter
-
-    with open(counter_file, "w") as f:
-        # noinspection PyTypeChecker
-        json.dump({"count": count}, f)
 
     # --- Create logger ---
     logger = logging.getLogger(name)

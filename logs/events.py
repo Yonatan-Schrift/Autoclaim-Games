@@ -40,9 +40,12 @@ def log_persistent(logger: logging.Logger, message: str) -> None:
             notify_everyone = env_to_bool("DISCORD_NOTIFY_EVERYONE")
 
             mention = " @everyone" if notify_everyone else ""
-            send_discord_notification(
+            success = send_discord_notification(
                 getenv("DISCORD_WEBHOOK_URL"),
                 f"{message}\n\n*This is an automated message.*{mention}"
             )
+            if not success:
+                logger.warning(f"Discord notification failed for: {message}")
         except Exception as e:
             logger.error(f"Failed to send Discord notification: {e}")
+            logger.warning(f"Event not notified to Discord: {message}")

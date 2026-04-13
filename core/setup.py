@@ -4,67 +4,85 @@
 @brief:  Includes functions for setting up the browser agent.
 @author: Yonatan-Schrift
 """
-from datetime import datetime, timedelta
+import os
+import time
 
 from playwright.sync_api import sync_playwright
+from playwright._impl._errors import Error as PlaywrightError
 from core.anti_bot import random_sleep
+from logs.logger import get_logger
+
+# Setup logger
+logger = get_logger(__name__)
 
 
-def setup_and_open(url : str = None, is_epic : bool = False, headless: bool = False):
+def setup_and_open(url: str = None, is_epic: bool = False, headless: bool = False):
     """
     Sets up the browser and opens the given URL.
-    Optionally sets up cookies for epic-games.
+    Includes retry logic for DNS/network failures.
 
     Args:
         url (str): The URL to open.
-        is_epic (bool): Whether to set up cookies for epic-games.
+        is_epic (bool): Unused parameter kept for backwards compatibility.
         headless (bool): Whether to set up browser headless.
 
     Returns:
         Tuple: A tuple containing the Playwright instance, browser context, and page object.
     """
     p = sync_playwright().start()
+    browser = None
+    try:
+        # Use persistent context to maintain login sessions across runs
+        user_data_dir = "pw_user_data"
+        os.makedirs(user_data_dir, exist_ok=True)
+        
+        browser = p.firefox.launch_persistent_context(
+            user_data_dir,
+            user_agent=(
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) "
+                "Gecko/20100101 Firefox/128.0"
+            ),
+            headless=headless,
+            viewport={"width": 1920, "height": 1080}
+        )
 
-    user_data_dir = "pw_user_data"
-    browser = p.firefox.launch_persistent_context(
-        user_data_dir,
-        user_agent=(
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) "
-            "Gecko/20100101 Firefox/128.0"
-        ),
-        headless=headless,
-        viewport={"width": 1920, "height": 1080}
-    )
+        page = browser.pages[0]
 
-    # sets up specific cookies for epic-games
-    if is_epic:
-        value = (datetime.now() - timedelta(days=5)).isoformat() + "Z"
-        browser.add_cookies([
-            {
-                "name": "OptanonAlertBoxClosed",
-                "value": value,
-                "domain": "epicgames.com",
-                "path": "/"
-            },
-            {
-                "name": "HasAcceptedAgeGates",
-                "value": "USK:9007199254740991,general:18,EPIC SUGGESTED RATING:18",
-                "domain": "store.epicgames.com",
-                "path": "/"
-            }
-        ])
+        # hide navigator.webdriver
+        page.add_init_script("""
+            Object.defineProperty(navigator, 'webdriver', {
+                get: () => undefined
+            })
+        """)
 
-    page = browser.pages[0]
+        random_sleep()
+        
+        # Retry logic for DNS/network failures
+        if url:
+            max_retries = 3
+            retry_delay = 10  # seconds
+            for attempt in range(max_retries):
+                try:
+                    page.goto(url, wait_until="load", timeout=30000)
+                    break
+                except PlaywrightError as e:
+                    error_str = str(e)
+                    if "NS_ERROR_UNKNOWN_HOST" in error_str or "net::ERR_NAME_NOT_RESOLVED" in error_str:
+                        if attempt < max_retries - 1:
+                            logger.warning(f"DNS resolution failed for {url}, retrying in {retry_delay}s ({attempt + 1}/{max_retries})...")
+                            time.sleep(retry_delay)
+                        else:
+                            logger.error(f"DNS resolution failed after {max_retries} attempts")
+                            raise
+                    else:
+                        raise
 
-    # hide navigator.webdriver
-    page.add_init_script("""
-        Object.defineProperty(navigator, 'webdriver', {
-            get: () => undefined
-        })
-    """)
-
-    random_sleep()
-    if url:
-        page.goto(url)
-
-    return p, browser, page
+        return p, browser, page
+    except Exception:
+        if browser:
+            try:
+                browser.close()
+            except Exception:
+                pass
+        p.stop()
+        raise
