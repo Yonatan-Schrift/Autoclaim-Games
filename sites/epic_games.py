@@ -241,6 +241,12 @@ class EpicGames(Website):
             EpicGames.logger.info(f"'{game_name}' is a DLC, skipping...")
             return
 
+        # Check if game is upcoming/unreleased (countdown timer like "Unlocking in 03:19:03:32")
+        EpicGames.logger.debug("Checking if game is upcoming (countdown timer)...")
+        if safe_find(page, "text='Unlocking in'", timeout_ms=2000):
+            EpicGames.logger.info(f"'{game_name}' is not yet released, skipping...")
+            return
+
         # Accept EULA if it appears (only on first claim)
         EpicGames.logger.debug("Checking for EULA...")
         if safe_find(page, "text='end user license agreement'", timeout_ms=2000):

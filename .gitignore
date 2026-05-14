@@ -22,3 +22,7 @@ pw_user_data/
 .idea/
 .vscode/
 testing/
+
+# AI files
+AGENTS.md
+ARCHITECTURE.md
