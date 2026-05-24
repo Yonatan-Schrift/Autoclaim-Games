@@ -262,45 +262,60 @@ class EpicGames(Website):
 
         # Wait until the checkout iframe exists
         EpicGames.logger.debug("Waiting for checkout iframe...")
+        iframe_loaded = False
         try:
             page.wait_for_selector("#webPurchaseContainer iframe", timeout=DEFAULT_TIMEOUT_MS)
+            iframe_loaded = True
         except Exception as e:
-            EpicGames.logger.error(f"Checkout iframe not found: {e}")
+            EpicGames.logger.warning(f"Checkout iframe not found: {e}")
+            # Game may have been claimed without iframe (direct claim flow)
+            # Check if game is now in library or if order confirmation appears
+            EpicGames.logger.debug("Checking if game was claimed without iframe...")
+            if safe_find(page, "text='In Library'", timeout_ms=3000):
+                EpicGames.logger.info(f"'{game_name}' successfully claimed!")
+                return
+            if safe_find(page, "text=Thanks for your order!", timeout_ms=3000):
+                EpicGames.logger.info(f"'{game_name}' successfully claimed!")
+                log_persistent(EpicGames.logger, f"User {os.getlogin()} Successfully claimed {game_name} from {link}")
+                return
+            # Neither iframe nor success indicators found - this is a real error
+            EpicGames.logger.error("Game was not claimed and checkout iframe did not appear")
             raise
 
-        # Attach to the checkout iframe
-        EpicGames.logger.debug("Locating Place Order button...")
-        iframe = page.frame_locator("#webPurchaseContainer iframe")
+        if iframe_loaded:
+            # Attach to the checkout iframe
+            EpicGames.logger.debug("Locating Place Order button...")
+            iframe = page.frame_locator("#webPurchaseContainer iframe")
 
-        # Locate the Place Order button (only when not loading)
-        button = iframe.locator(
-            'button:has-text("Place Order"):not(:has(.payment-loading--loading))'
-        )
+            # Locate the Place Order button (only when not loading)
+            button = iframe.locator(
+                'button:has-text("Place Order"):not(:has(.payment-loading--loading))'
+            )
 
-        # Wait until button is visible and click
-        EpicGames.logger.debug("Waiting for Place Order button to be visible...")
-        try:
-            button.wait_for(state="visible", timeout=20_000)
-        except Exception as e:
-            EpicGames.logger.error(f"Place Order button not visible: {e}")
-            raise
+            # Wait until button is visible and click
+            EpicGames.logger.debug("Waiting for Place Order button to be visible...")
+            try:
+                button.wait_for(state="visible", timeout=20_000)
+            except Exception as e:
+                EpicGames.logger.error(f"Place Order button not visible: {e}")
+                raise
+                
+            EpicGames.logger.debug("Clicking Place Order button...")
+            user_click(button)
+
+            # captcha = page.frame_locator("#h_captcha_challenge_checkout_free_prod iframe")
+            # if captcha:
+            #     EpicGames.logger.warning("CAPTCHA detected!")
+            #     input("press Enter in the console to continue...")
+
+            # Wait until the "It's all yours" text appears
+            EpicGames.logger.debug("Waiting for order confirmation...")
+            if safe_find(page, "text=It's all yours",timeout_ms=15_000):
+                EpicGames.logger.info(f"'{game_name}' successfully claimed!")
+                log_persistent(EpicGames.logger, f"User {os.getlogin()} Successfully claimed {game_name} from {link}")
+                return
             
-        EpicGames.logger.debug("Clicking Place Order button...")
-        user_click(button)
-
-        # captcha = page.frame_locator("#h_captcha_challenge_checkout_free_prod iframe")
-        # if captcha:
-        #     EpicGames.logger.warning("CAPTCHA detected!")
-        #     input("press Enter in the console to continue...")
-
-        # Wait until the "Thanks for your order!" text appears
-        EpicGames.logger.debug("Waiting for order confirmation...")
-        if safe_find(page, "text=Thanks for your order!",timeout_ms=15_000):
-            EpicGames.logger.info(f"'{game_name}' successfully claimed!")
-            log_persistent(EpicGames.logger, f"User {os.getlogin()} Successfully claimed {game_name} from {link}")
-            return
-        
-        EpicGames.logger.warning(f"'{game_name}' claim completed but no confirmation found")
+            EpicGames.logger.warning(f"'{game_name}' claim completed but no confirmation found")
 
 @staticmethod
 def scroll_twice(page: Page, scroll_amount: int):
